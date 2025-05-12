@@ -85,63 +85,57 @@
   </div>
 
 <h2>Выберите цвета</h2>
-<div id="colorContainer" class="color-container">
-  <!-- Цветовые блоки будут добавляться сюда -->
-</div>
+<div id="colorList" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+<input type="color" id="hiddenColorPicker" style="display: none;">
 
 <script>
-  const colorContainer = document.getElementById('colorContainer');
+  const colorList = document.getElementById('colorList');
+  const colorPicker = document.getElementById('hiddenColorPicker');
   const selectedColors = [];
 
-  function createColorBlock(color = '#ff0000') {
-    const wrapper = document.createElement('div');
-    wrapper.style.display = 'flex';
-    wrapper.style.alignItems = 'center';
-    wrapper.style.gap = '10px';
-    wrapper.style.marginBottom = '10px';
+  // Создаёт цветной кружок
+  function addColorCircle(color) {
+    const circle = document.createElement('div');
+    circle.style.width = '30px';
+    circle.style.height = '30px';
+    circle.style.borderRadius = '50%';
+    circle.style.backgroundColor = color;
+    circle.style.border = '2px solid #ccc';
+    colorList.insertBefore(circle, colorList.lastChild); // вставляем перед плюсом
+    selectedColors.push(color);
+  }
 
-    const input = document.createElement('input');
-    input.type = 'color';
-    input.value = color;
-    input.oninput = updateColors;
-
+  // Создаёт кнопку "+"
+  function createPlusButton() {
     const plus = document.createElement('div');
     plus.textContent = '+';
-    plus.className = 'plus-button';
-    plus.style.cursor = 'pointer';
     plus.style.width = '30px';
     plus.style.height = '30px';
     plus.style.borderRadius = '50%';
     plus.style.backgroundColor = '#2196f3';
-    plus.style.color = '#fff';
+    plus.style.color = 'white';
     plus.style.display = 'flex';
     plus.style.justifyContent = 'center';
     plus.style.alignItems = 'center';
+    plus.style.cursor = 'pointer';
+
     plus.onclick = () => {
-      plus.remove(); // Удаляем плюс у текущего блока
-      createColorBlock(); // Добавляем новый блок
+      colorPicker.click(); // Открываем скрытый input type="color"
     };
 
-    wrapper.appendChild(input);
-    wrapper.appendChild(plus);
-    colorContainer.appendChild(wrapper);
-    updateColors();
+    colorList.appendChild(plus);
   }
 
-  function updateColors() {
-    const inputs = colorContainer.querySelectorAll('input[type="color"]');
-    selectedColors.length = 0;
-    inputs.forEach(input => selectedColors.push(input.value));
-  }
+  // Обработка выбора цвета
+  colorPicker.addEventListener('input', () => {
+    const newColor = colorPicker.value;
+    if (!selectedColors.includes(newColor)) {
+      addColorCircle(newColor);
+    }
+  });
 
-  function generate() {
-    // Пример использования:
-    alert(`Выбранные цвета: ${selectedColors.join(', ')}`);
-    // Здесь можно передать эти цвета в Telegram через sendData
-  }
-
-  // Первый блок при загрузке
-  createColorBlock();
+  // Инициализация
+  createPlusButton();
 </script>
 
   <button class="generate-button" onclick="generate()">Сгенерировать</button>
