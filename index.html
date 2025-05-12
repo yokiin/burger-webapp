@@ -13,7 +13,7 @@
     h2 {
       margin-top: 30px;
     }
-    .styles, .quality, .color {
+    .styles, .quality, .color, .selected-colors {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
@@ -33,6 +33,12 @@
       flex-direction: column;
       gap: 5px;
     }
+    .selected-colors div {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: inline-block;
+    }
     .generate-button {
       margin-top: 30px;
       padding: 15px;
@@ -41,6 +47,22 @@
       color: white;
       border: none;
       border-radius: 10px;
+      cursor: pointer;
+    }
+    .color-picker-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .plus-button {
+      width: 30px;
+      height: 30px;
+      background-color: #2196f3;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       cursor: pointer;
     }
   </style>
@@ -63,14 +85,19 @@
   </div>
 
   <h2>Выберите цвет</h2>
-  <div class="color">
+  <div class="color-picker-container">
     <input type="color" id="colorPicker" value="#ff0000">
+    <div class="plus-button" onclick="addColor()">+</div>
   </div>
+
+  <h2>Выбранные цвета</h2>
+  <div class="selected-colors" id="selectedColors"></div>
 
   <button class="generate-button" onclick="generate()">Сгенерировать</button>
 
   <script>
     let selectedStyle = null;
+    const selectedColors = [];
 
     document.querySelectorAll('.styles img').forEach(img => {
       img.addEventListener('click', () => {
@@ -95,19 +122,38 @@
       }
     });
 
+    function addColor() {
+      const color = document.getElementById('colorPicker').value;
+      if (!selectedColors.includes(color)) {
+        selectedColors.push(color);
+        updateColorDisplay();
+      }
+    }
+
+    function updateColorDisplay() {
+      const selectedColorsContainer = document.getElementById('selectedColors');
+      selectedColorsContainer.innerHTML = ''; // Очищаем список
+
+      selectedColors.forEach(color => {
+        const colorDiv = document.createElement('div');
+        colorDiv.style.backgroundColor = color;
+        selectedColorsContainer.appendChild(colorDiv);
+      });
+    }
+
     function generate() {
       const quality = qualitySlider.value;
-      const color = document.getElementById('colorPicker').value;
+      const color = selectedColors.join(", "); // Список всех выбранных цветов
 
       if (!selectedStyle) {
         alert("Пожалуйста, выбери стиль.");
         return;
       }
 
-      alert(`Стиль: ${selectedStyle}\nКачество: ${qualityValue.textContent}\nЦвет: ${color}`);
+      alert(`Стиль: ${selectedStyle}\nКачество: ${qualityValue.textContent}\nЦвета: ${color}`);
 
       // Здесь ты можешь передать параметры в Telegram, например:
-      // telegram.sendData({ style: selectedStyle, quality: quality, color: color });
+      // telegram.sendData({ style: selectedStyle, quality: quality, colors: selectedColors });
     }
   </script>
 </body>
