@@ -84,14 +84,65 @@
     <span id="qualityValue">Среднее</span>
   </div>
 
-  <h2>Выберите цвет</h2>
-  <div class="color-picker-container">
-    <input type="color" id="colorPicker" value="#ff0000">
-    <div class="plus-button" onclick="addColor()">+</div>
-  </div>
+<h2>Выберите цвета</h2>
+<div id="colorContainer" class="color-container">
+  <!-- Цветовые блоки будут добавляться сюда -->
+</div>
 
-  <h2>Выбранные цвета</h2>
-  <div class="selected-colors" id="selectedColors"></div>
+<script>
+  const colorContainer = document.getElementById('colorContainer');
+  const selectedColors = [];
+
+  function createColorBlock(color = '#ff0000') {
+    const wrapper = document.createElement('div');
+    wrapper.style.display = 'flex';
+    wrapper.style.alignItems = 'center';
+    wrapper.style.gap = '10px';
+    wrapper.style.marginBottom = '10px';
+
+    const input = document.createElement('input');
+    input.type = 'color';
+    input.value = color;
+    input.oninput = updateColors;
+
+    const plus = document.createElement('div');
+    plus.textContent = '+';
+    plus.className = 'plus-button';
+    plus.style.cursor = 'pointer';
+    plus.style.width = '30px';
+    plus.style.height = '30px';
+    plus.style.borderRadius = '50%';
+    plus.style.backgroundColor = '#2196f3';
+    plus.style.color = '#fff';
+    plus.style.display = 'flex';
+    plus.style.justifyContent = 'center';
+    plus.style.alignItems = 'center';
+    plus.onclick = () => {
+      plus.remove(); // Удаляем плюс у текущего блока
+      createColorBlock(); // Добавляем новый блок
+    };
+
+    wrapper.appendChild(input);
+    wrapper.appendChild(plus);
+    colorContainer.appendChild(wrapper);
+    updateColors();
+  }
+
+  function updateColors() {
+    const inputs = colorContainer.querySelectorAll('input[type="color"]');
+    selectedColors.length = 0;
+    inputs.forEach(input => selectedColors.push(input.value));
+  }
+
+  function generate() {
+    // Пример использования:
+    alert(`Выбранные цвета: ${selectedColors.join(', ')}`);
+    // Здесь можно передать эти цвета в Telegram через sendData
+  }
+
+  // Первый блок при загрузке
+  createColorBlock();
+</script>
 
   <button class="generate-button" onclick="generate()">Сгенерировать</button>
 
