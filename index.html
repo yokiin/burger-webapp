@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Генератор изображений</title>
   <style>
     body {
@@ -10,14 +10,17 @@
       padding: 20px;
       background: #f9f9f9;
     }
+
     h2 {
       margin-top: 30px;
     }
-    .styles, .quality, .color, .selected-colors {
+
+    .styles, .quality, .color-container {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
     }
+
     .styles img {
       width: 80px;
       height: 80px;
@@ -26,19 +29,49 @@
       border-radius: 10px;
       cursor: pointer;
     }
+
     .styles img.selected {
       border-color: #2196f3;
     }
-    .quality {
+
+    .quality-slider {
+      display: flex;
       flex-direction: column;
       gap: 5px;
+      width: 200px;
     }
-    .selected-colors div {
+
+    .quality-slider input[type="range"] {
+      width: 100%;
+    }
+
+    .color-circle {
       width: 30px;
       height: 30px;
       border-radius: 50%;
-      display: inline-block;
+      border: 2px solid #ccc;
     }
+
+    .plus-button {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: #2196f3;
+      color: white;
+      font-size: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .color-picker-popup {
+      margin-top: 10px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+
     .generate-button {
       margin-top: 30px;
       padding: 15px;
@@ -47,22 +80,6 @@
       color: white;
       border: none;
       border-radius: 10px;
-      cursor: pointer;
-    }
-    .color-picker-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .plus-button {
-      width: 30px;
-      height: 30px;
-      background-color: #2196f3;
-      color: white;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       cursor: pointer;
     }
   </style>
@@ -78,76 +95,39 @@
   </div>
 
   <h2>Качество</h2>
-  <div class="quality">
-    <label for="qualitySlider">Выберите качество:</label>
-    <input type="range" id="qualitySlider" min="0" max="2" value="1" step="1">
-    <span id="qualityValue">Среднее</span>
+  <div class="quality-slider">
+    <input type="range" id="qualitySlider" min="0" max="2" step="1" value="1">
+    <div id="qualityLabel">Среднее</div>
   </div>
 
-<h2>Выберите цвет</h2>
-<div id="colorList" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
-<input type="color" id="colorPicker" style="display: block; margin-bottom: 10px;">
-<button id="addColorButton" style="margin-top: 10px; padding: 10px 15px; background-color: #2196f3; color: white; border: none; border-radius: 5px; cursor: pointer;">
-  Добавить цвет
-</button>
+  <h2>Выбранные цвета</h2>
+  <div id="colorList" class="color-container"></div>
 
-<script>
-  const colorList = document.getElementById('colorList');
-  const colorPicker = document.getElementById('colorPicker');
-  const addColorButton = document.getElementById('addColorButton');
-  const selectedColors = [];
-
-  // Функция для добавления цвета в список
-  function addColorCircle(color) {
-    const circle = document.createElement('div');
-    circle.style.width = '30px';
-    circle.style.height = '30px';
-    circle.style.borderRadius = '50%';
-    circle.style.backgroundColor = color;
-    circle.style.border = '2px solid #ccc';
-    colorList.insertBefore(circle, colorList.lastChild); // вставляем перед плюсом
-    selectedColors.push(color);
-  }
-
-  // Создаём кнопку "+"
-  function createPlusButton() {
-    const plus = document.createElement('div');
-    plus.textContent = '+';
-    plus.style.width = '30px';
-    plus.style.height = '30px';
-    plus.style.borderRadius = '50%';
-    plus.style.backgroundColor = '#2196f3';
-    plus.style.color = 'white';
-    plus.style.display = 'flex';
-    plus.style.justifyContent = 'center';
-    plus.style.alignItems = 'center';
-    plus.style.cursor = 'pointer';
-
-    plus.onclick = () => {
-      colorPicker.click(); // Открываем input color
-    };
-
-    colorList.appendChild(plus);
-  }
-
-  // Обработка нажатия на кнопку "Добавить цвет"
-  addColorButton.addEventListener('click', () => {
-    const selectedColor = colorPicker.value;
-    if (selectedColor && !selectedColors.includes(selectedColor)) {
-      addColorCircle(selectedColor); // Добавляем выбранный цвет в палитру
-    }
-  });
-
-  // Инициализация
-  createPlusButton();
-</script>
+  <div id="colorPickerPopup" class="color-picker-popup">
+    <input type="color" id="colorPicker">
+    <button id="addColorButton" class="generate-button" style="padding: 10px; font-size: 14px;">Добавить цвет</button>
+  </div>
 
   <button class="generate-button" onclick="generate()">Сгенерировать</button>
 
   <script>
     let selectedStyle = null;
     const selectedColors = [];
+    const qualitySlider = document.getElementById('qualitySlider');
+    const qualityLabel = document.getElementById('qualityLabel');
+    const colorList = document.getElementById('colorList');
+    const colorPicker = document.getElementById('colorPicker');
+    const colorPopup = document.getElementById('colorPickerPopup');
+    const addColorButton = document.getElementById('addColorButton');
 
+    const qualityMap = ['Низкое', 'Среднее', 'Высокое'];
+
+    // Обновляем отображение качества
+    qualitySlider.addEventListener('input', () => {
+      qualityLabel.textContent = qualityMap[qualitySlider.value];
+    });
+
+    // Выбор стиля
     document.querySelectorAll('.styles img').forEach(img => {
       img.addEventListener('click', () => {
         document.querySelectorAll('.styles img').forEach(i => i.classList.remove('selected'));
@@ -156,53 +136,54 @@
       });
     });
 
-    const qualitySlider = document.getElementById('qualitySlider');
-    const qualityValue = document.getElementById('qualityValue');
-
-    // Обновляем текст с качеством при изменении ползунка
-    qualitySlider.addEventListener('input', () => {
-      const value = qualitySlider.value;
-      if (value == 0) {
-        qualityValue.textContent = 'Низкое';
-      } else if (value == 1) {
-        qualityValue.textContent = 'Среднее';
-      } else if (value == 2) {
-        qualityValue.textContent = 'Высокое';
-      }
-    });
-
-    function addColor() {
-      const color = document.getElementById('colorPicker').value;
-      if (!selectedColors.includes(color)) {
-        selectedColors.push(color);
-        updateColorDisplay();
-      }
-    }
-
-    function updateColorDisplay() {
-      const selectedColorsContainer = document.getElementById('selectedColors');
-      selectedColorsContainer.innerHTML = ''; // Очищаем список
+    // Создаём плюсик
+    function renderColorList() {
+      colorList.innerHTML = ''; // очищаем список
 
       selectedColors.forEach(color => {
-        const colorDiv = document.createElement('div');
-        colorDiv.style.backgroundColor = color;
-        selectedColorsContainer.appendChild(colorDiv);
+        const circle = document.createElement('div');
+        circle.className = 'color-circle';
+        circle.style.backgroundColor = color;
+        colorList.appendChild(circle);
       });
+
+      const plus = document.createElement('div');
+      plus.className = 'plus-button';
+      plus.textContent = '+';
+      plus.onclick = () => {
+        colorPopup.style.display = 'flex';
+      };
+      colorList.appendChild(plus);
     }
 
+    // Добавляем цвет при подтверждении
+    addColorButton.addEventListener('click', () => {
+      const newColor = colorPicker.value;
+      if (!selectedColors.includes(newColor)) {
+        selectedColors.push(newColor);
+        renderColorList();
+      }
+      colorPopup.style.display = 'none';
+    });
+
+    // Инициализация
+    renderColorList();
+
+    // Генерация
     function generate() {
-      const quality = qualitySlider.value;
-      const color = selectedColors.join(", "); // Список всех выбранных цветов
+      const quality = ['low', 'medium', 'high'][qualitySlider.value];
 
       if (!selectedStyle) {
         alert("Пожалуйста, выбери стиль.");
         return;
       }
 
-      alert(`Стиль: ${selectedStyle}\nКачество: ${qualityValue.textContent}\nЦвета: ${color}`);
+      if (selectedColors.length === 0) {
+        alert("Пожалуйста, выбери хотя бы один цвет.");
+        return;
+      }
 
-      // Здесь ты можешь передать параметры в Telegram, например:
-      // telegram.sendData({ style: selectedStyle, quality: quality, colors: selectedColors });
+      alert(`Стиль: ${selectedStyle}\nКачество: ${quality}\nЦвета: ${selectedColors.join(', ')}`);
     }
   </script>
 </body>
