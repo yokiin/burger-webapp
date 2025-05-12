@@ -15,7 +15,7 @@
       margin-top: 30px;
     }
 
-    .styles, .quality, .color-container {
+    .styles, .color-container {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
@@ -66,10 +66,17 @@
     }
 
     .color-picker-popup {
-      margin-top: 10px;
+      position: absolute;
+      background: white;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       display: none;
       flex-direction: column;
       gap: 10px;
+      z-index: 10;
+      margin-top: 10px;
     }
 
     .generate-button {
@@ -81,6 +88,10 @@
       border: none;
       border-radius: 10px;
       cursor: pointer;
+    }
+
+    .color-popup-wrapper {
+      position: relative;
     }
   </style>
 </head>
@@ -103,9 +114,11 @@
   <h2>Выбранные цвета</h2>
   <div id="colorList" class="color-container"></div>
 
-  <div id="colorPickerPopup" class="color-picker-popup">
-    <input type="color" id="colorPicker">
-    <button id="addColorButton" class="generate-button" style="padding: 10px; font-size: 14px;">Добавить цвет</button>
+  <div class="color-popup-wrapper">
+    <div id="colorPickerPopup" class="color-picker-popup">
+      <input type="color" id="colorPicker">
+      <button id="addColorButton" class="generate-button" style="padding: 10px; font-size: 14px;">Добавить</button>
+    </div>
   </div>
 
   <button class="generate-button" onclick="generate()">Сгенерировать</button>
@@ -122,12 +135,12 @@
 
     const qualityMap = ['Низкое', 'Среднее', 'Высокое'];
 
-    // Обновляем отображение качества
+    // Обновляем текст при смене ползунка
     qualitySlider.addEventListener('input', () => {
       qualityLabel.textContent = qualityMap[qualitySlider.value];
     });
 
-    // Выбор стиля
+    // Обработка выбора стиля
     document.querySelectorAll('.styles img').forEach(img => {
       img.addEventListener('click', () => {
         document.querySelectorAll('.styles img').forEach(i => i.classList.remove('selected'));
@@ -136,9 +149,9 @@
       });
     });
 
-    // Создаём плюсик
+    // Рендер списка цветов + плюс
     function renderColorList() {
-      colorList.innerHTML = ''; // очищаем список
+      colorList.innerHTML = '';
 
       selectedColors.forEach(color => {
         const circle = document.createElement('div');
@@ -156,7 +169,7 @@
       colorList.appendChild(plus);
     }
 
-    // Добавляем цвет при подтверждении
+    // Добавление нового цвета
     addColorButton.addEventListener('click', () => {
       const newColor = colorPicker.value;
       if (!selectedColors.includes(newColor)) {
@@ -169,7 +182,7 @@
     // Инициализация
     renderColorList();
 
-    // Генерация
+    // Кнопка "Сгенерировать"
     function generate() {
       const quality = ['low', 'medium', 'high'][qualitySlider.value];
 
