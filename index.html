@@ -18,6 +18,7 @@
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      align-items: center;
     }
     .styles img {
       width: 80px;
@@ -58,11 +59,19 @@
     }
     #pickrContainer {
       display: none;
-      margin-top: 20px;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      z-index: 1000;
     }
     #addColorButton {
-      margin-top: 10px;
-      padding: 8px 14px;
+      margin-top: 15px;
+      padding: 10px 18px;
       font-size: 14px;
       border: none;
       background-color: #2196f3;
@@ -73,101 +82,58 @@
   </style>
 </head>
 <body>
-
   <h1>Генератор изображений</h1>
 
-  <h2>Выберите стиль</h2>
-  <div class="styles">
-    <img src="https://placekitten.com/100/100" data-style="kitten" alt="Style 1">
-    <img src="https://placebear.com/100/100" data-style="bear" alt="Style 2">
-    <img src="https://placebeard.it/100x100" data-style="beard" alt="Style 3">
-  </div>
-
-  <h2>Качество</h2>
-  <input type="range" id="qualitySlider" min="0" max="2" step="1" value="1">
-  <div id="qualityLabel">Среднее</div>
-
   <h2>Цвета</h2>
-  <div class="color" id="colorContainer">
-    <div class="circle plus" id="addColor">+</div>
+  <div class="color" id="colorList">
+    <div class="circle plus" id="openColorPicker">+</div>
   </div>
 
   <div id="pickrContainer">
-    <div id="pickr"></div>
+    <div id="colorPicker"></div>
     <button id="addColorButton">Добавить</button>
   </div>
 
-  <button class="generate-button" onclick="generate()">Сгенерировать</button>
-
-  <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr"></script>
   <script>
-    let selectedStyle = null;
-    let selectedColors = [];
+    const colorList = document.getElementById("colorList");
+    const openColorPicker = document.getElementById("openColorPicker");
+    const pickrContainer = document.getElementById("pickrContainer");
     let currentColor = '#ff0000';
 
-    // Стиль
-    document.querySelectorAll('.styles img').forEach(img => {
-      img.addEventListener('click', () => {
-        document.querySelectorAll('.styles img').forEach(i => i.classList.remove('selected'));
-        img.classList.add('selected');
-        selectedStyle = img.dataset.style;
-      });
-    });
-
-    // Качество
-    const qualitySlider = document.getElementById('qualitySlider');
-    const qualityLabel = document.getElementById('qualityLabel');
-    const qualityValues = ['Низкое', 'Среднее', 'Высокое'];
-    qualitySlider.addEventListener('input', () => {
-      qualityLabel.textContent = qualityValues[qualitySlider.value];
-    });
-
-    // Pickr
-    const pickrContainer = document.getElementById('pickrContainer');
     const pickr = Pickr.create({
-      el: '#pickr',
+      el: '#colorPicker',
       theme: 'classic',
-      default: '#ff0000',
+      default: currentColor,
+      useAsButton: false,
       components: {
         preview: true,
-        opacity: false,
+        opacity: true,
         hue: true,
         interaction: {
           hex: true,
+          rgba: true,
           input: true,
+          save: false
         }
       }
     });
 
-    pickr.on('change', (color) => {
-      currentColor = color.toHEXA().toString();
+    openColorPicker.addEventListener("click", () => {
+      pickr.show();
+      pickrContainer.style.display = "block";
     });
 
-    // Показать палитру
-    document.getElementById('addColor').addEventListener('click', () => {
-      pickrContainer.style.display = 'block';
-    });
+    document.getElementById("addColorButton").addEventListener("click", () => {
+      currentColor = pickr.getColor().toHEXA().toString();
 
-    // Добавить выбранный цвет
-    document.getElementById('addColorButton').addEventListener('click', () => {
-      selectedColors.push(currentColor);
-      const circle = document.createElement('div');
-      circle.className = 'circle';
+      const circle = document.createElement("div");
+      circle.className = "circle";
       circle.style.backgroundColor = currentColor;
-      document.getElementById('colorContainer').insertBefore(circle, document.getElementById('addColor'));
-      pickrContainer.style.display = 'none';
+      colorList.insertBefore(circle, openColorPicker);
+
+      pickrContainer.style.display = "none";
     });
-
-    // Генерация
-    function generate() {
-      if (!selectedStyle) {
-        alert("Пожалуйста, выбери стиль.");
-        return;
-      }
-
-      const quality = qualityValues[qualitySlider.value];
-      alert(`Стиль: ${selectedStyle}\nКачество: ${quality}\nЦвета: ${selectedColors.join(', ')}`);
-    }
   </script>
 </body>
 </html>
