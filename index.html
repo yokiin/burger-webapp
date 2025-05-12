@@ -84,16 +84,20 @@
     <span id="qualityValue">Среднее</span>
   </div>
 
-<h2>Выберите цвета</h2>
+<h2>Выберите цвет</h2>
 <div id="colorList" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
-<input type="color" id="hiddenColorPicker" style="display: none;">
+<input type="color" id="colorPicker" style="display: block; margin-bottom: 10px;">
+<button id="addColorButton" style="margin-top: 10px; padding: 10px 15px; background-color: #2196f3; color: white; border: none; border-radius: 5px; cursor: pointer;">
+  Добавить цвет
+</button>
 
 <script>
   const colorList = document.getElementById('colorList');
-  const colorPicker = document.getElementById('hiddenColorPicker');
+  const colorPicker = document.getElementById('colorPicker');
+  const addColorButton = document.getElementById('addColorButton');
   const selectedColors = [];
 
-  // Создаёт цветной кружок
+  // Функция для добавления цвета в список
   function addColorCircle(color) {
     const circle = document.createElement('div');
     circle.style.width = '30px';
@@ -105,7 +109,7 @@
     selectedColors.push(color);
   }
 
-  // Создаёт кнопку "+"
+  // Создаём кнопку "+"
   function createPlusButton() {
     const plus = document.createElement('div');
     plus.textContent = '+';
@@ -120,17 +124,17 @@
     plus.style.cursor = 'pointer';
 
     plus.onclick = () => {
-      colorPicker.click(); // Открываем скрытый input type="color"
+      colorPicker.click(); // Открываем input color
     };
 
     colorList.appendChild(plus);
   }
 
-  // Обработка выбора цвета
-  colorPicker.addEventListener('input', () => {
-    const newColor = colorPicker.value;
-    if (!selectedColors.includes(newColor)) {
-      addColorCircle(newColor);
+  // Обработка нажатия на кнопку "Добавить цвет"
+  addColorButton.addEventListener('click', () => {
+    const selectedColor = colorPicker.value;
+    if (selectedColor && !selectedColors.includes(selectedColor)) {
+      addColorCircle(selectedColor); // Добавляем выбранный цвет в палитру
     }
   });
 
