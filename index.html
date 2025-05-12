@@ -29,12 +29,9 @@
     .styles img.selected {
       border-color: #2196f3;
     }
-    .quality label {
-      background: white;
-      padding: 10px 15px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      cursor: pointer;
+    .quality {
+      flex-direction: column;
+      gap: 5px;
     }
     .generate-button {
       margin-top: 30px;
@@ -60,9 +57,9 @@
 
   <h2>Качество</h2>
   <div class="quality">
-    <label><input type="radio" name="quality" value="low"> Низкое</label>
-    <label><input type="radio" name="quality" value="medium" checked> Среднее</label>
-    <label><input type="radio" name="quality" value="high"> Высокое</label>
+    <label for="qualitySlider">Выберите качество:</label>
+    <input type="range" id="qualitySlider" min="0" max="2" value="1" step="1">
+    <span id="qualityValue">Среднее</span>
   </div>
 
   <h2>Выберите цвет</h2>
@@ -83,8 +80,23 @@
       });
     });
 
+    const qualitySlider = document.getElementById('qualitySlider');
+    const qualityValue = document.getElementById('qualityValue');
+
+    // Обновляем текст с качеством при изменении ползунка
+    qualitySlider.addEventListener('input', () => {
+      const value = qualitySlider.value;
+      if (value == 0) {
+        qualityValue.textContent = 'Низкое';
+      } else if (value == 1) {
+        qualityValue.textContent = 'Среднее';
+      } else if (value == 2) {
+        qualityValue.textContent = 'Высокое';
+      }
+    });
+
     function generate() {
-      const quality = document.querySelector('input[name="quality"]:checked').value;
+      const quality = qualitySlider.value;
       const color = document.getElementById('colorPicker').value;
 
       if (!selectedStyle) {
@@ -92,7 +104,10 @@
         return;
       }
 
-      alert(`Стиль: ${selectedStyle}\nКачество: ${quality}\nЦвет: ${color}`);
+      alert(`Стиль: ${selectedStyle}\nКачество: ${qualityValue.textContent}\nЦвет: ${color}`);
+
+      // Здесь ты можешь передать параметры в Telegram, например:
+      // telegram.sendData({ style: selectedStyle, quality: quality, color: color });
     }
   </script>
 </body>
