@@ -1,37 +1,97 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Генератор изображений</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мини-Генератор</title>
   <style>
     body {
+      margin: 0;
       font-family: sans-serif;
+      background: #fff;
       padding: 20px;
-      background: #f9f9f9;
     }
-    h2 {
-      margin-top: 30px;
-    }
-    .styles, .color, .quality {
+
+    .styles-container {
       display: flex;
+      overflow-x: auto;
       gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
+      margin-bottom: 20px;
     }
-    .styles img {
+
+    .style-card {
+      flex: 0 0 auto;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      overflow: hidden;
+      text-align: center;
+      cursor: pointer;
+    }
+    .style-card.selected {
+      border-color: #2196f3;
+    }
+    .style-card img {
       width: 80px;
       height: 80px;
       object-fit: cover;
-      border: 2px solid transparent;
-      border-radius: 10px;
+    }
+    .slider-label {
+      margin: 10px 0 5px;
+    }
+    input[type=range] {
+      width: 100%;
+    }
+
+    .colors-container {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .color-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid #ccc;
+    }
+    .add-color {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #eee;
+      border: 1px dashed #aaa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
+      font-size: 24px;
     }
-    .styles img.selected {
-      border-color: #2196f3;
+    .color-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      border-radius: 10px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 100;
     }
-    .generate-button {
+
+    .overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+      z-index: 99;
+      display: none;
+    }
+
+    .confirm-button {
       margin-top: 30px;
       padding: 15px;
       font-size: 16px;
@@ -39,101 +99,82 @@
       color: white;
       border: none;
       border-radius: 10px;
-      cursor: pointer;
-    }
-    .circle {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: 2px solid #999;
-      cursor: pointer;
-    }
-    .circle.plus {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 20px;
-      background-color: #fff;
-      border: 2px dashed #999;
-    }
-    #pickrContainer {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 20px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      border-radius: 12px;
-      z-index: 1000;
-    }
-    #addColorButton {
-      margin-top: 15px;
-      padding: 10px 18px;
-      font-size: 14px;
-      border: none;
-      background-color: #2196f3;
-      color: white;
-      border-radius: 6px;
+      width: 100%;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h1>Генератор изображений</h1>
 
-  <h2>Цвета</h2>
-  <div class="color" id="colorList">
-    <div class="circle plus" id="openColorPicker">+</div>
-  </div>
+<h2>Выбери стиль</h2>
+<div class="styles-container">
+  <div class="style-card" data-style="v3"><img src="https://placekitten.com/100/100"><div>V3</div></div>
+  <div class="style-card" data-style="photo"><img src="https://placebear.com/100/100"><div>Photo</div></div>
+  <div class="style-card" data-style="bw"><img src="https://placebeard.it/100x100"><div>B/W</div></div>
+</div>
 
-  <div id="pickrContainer">
-    <div id="colorPicker"></div>
-    <button id="addColorButton">Добавить</button>
-  </div>
+<h2>Качество</h2>
+<input type="range" min="1" max="3" step="1" value="2" id="qualityRange">
+<div id="qualityLabel" style="text-align:center">Среднее</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr"></script>
-  <script>
-    const colorList = document.getElementById("colorList");
-    const openColorPicker = document.getElementById("openColorPicker");
-    const pickrContainer = document.getElementById("pickrContainer");
-    let currentColor = '#ff0000';
+<h2>Цвета</h2>
+<div class="colors-container" id="colorsContainer">
+  <div class="add-color" id="addColor">+</div>
+</div>
 
-    const pickr = Pickr.create({
-      el: '#colorPicker',
-      theme: 'classic',
-      default: currentColor,
-      useAsButton: false,
-      components: {
-        preview: true,
-        opacity: true,
-        hue: true,
-        interaction: {
-          hex: true,
-          rgba: true,
-          input: true,
-          save: false
-        }
-      }
+<div class="overlay" id="overlay"></div>
+<div class="color-popup" id="colorPopup">
+  <input type="color" id="colorPicker">
+  <button id="addColorButton">Добавить</button>
+</div>
+
+<button class="confirm-button">Подтвердить</button>
+
+<script>
+  let selectedStyle = null;
+  const qualityMap = {1: 'Низкое', 2: 'Среднее', 3: 'Высокое'};
+  const qualityRange = document.getElementById('qualityRange');
+  const qualityLabel = document.getElementById('qualityLabel');
+
+  qualityRange.addEventListener('input', () => {
+    qualityLabel.textContent = qualityMap[qualityRange.value];
+  });
+
+  document.querySelectorAll('.style-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.style-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedStyle = card.dataset.style;
     });
+  });
 
-    openColorPicker.addEventListener("click", () => {
-      pickr.show();
-      pickrContainer.style.display = "block";
-    });
+  const addColorBtn = document.getElementById('addColor');
+  const colorPopup = document.getElementById('colorPopup');
+  const overlay = document.getElementById('overlay');
+  const colorPicker = document.getElementById('colorPicker');
+  const addColorButton = document.getElementById('addColorButton');
+  const colorsContainer = document.getElementById('colorsContainer');
 
-    document.getElementById("addColorButton").addEventListener("click", () => {
-      currentColor = pickr.getColor().toHEXA().toString();
+  addColorBtn.addEventListener('click', () => {
+    overlay.style.display = 'block';
+    colorPopup.style.display = 'flex';
+  });
 
-      const circle = document.createElement("div");
-      circle.className = "circle";
-      circle.style.backgroundColor = currentColor;
-      colorList.insertBefore(circle, openColorPicker);
+  overlay.addEventListener('click', () => {
+    overlay.style.display = 'none';
+    colorPopup.style.display = 'none';
+  });
 
-      pickrContainer.style.display = "none";
-    });
-  </script>
+  addColorButton.addEventListener('click', () => {
+    const newColor = colorPicker.value;
+    const circle = document.createElement('div');
+    circle.className = 'color-circle';
+    circle.style.backgroundColor = newColor;
+    colorsContainer.insertBefore(circle, addColorBtn);
+    overlay.style.display = 'none';
+    colorPopup.style.display = 'none';
+  });
+</script>
+
 </body>
 </html>
